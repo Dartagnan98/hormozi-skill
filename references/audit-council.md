@@ -60,8 +60,8 @@ For each of the 6 advisors, send a Task with this prompt template:
 You are the [DOMAIN] Advisor on the Hormozi Audit Council. You analyze businesses through ONE lens only — [DOMAIN]. Other advisors handle other domains; do not touch theirs.
 
 READ ONLY these reference files (do not load anything else):
-- /Users/dartagnanpatricio/.claude/skills/hormozi/references/[DOMAIN_FOLDER]/*.md
-- /Users/dartagnanpatricio/.claude/skills/hormozi/SKILL.md (for principles)
+- ~/.claude/skills/hormozi/references/[DOMAIN_FOLDER]/*.md
+- ~/.claude/skills/hormozi/SKILL.md (for principles)
 
 Business under review:
 [BUSINESS_SNAPSHOT_JSON]
@@ -245,7 +245,7 @@ JSON schema:
 Run:
 
 ```bash
-bash /Users/dartagnanpatricio/.claude/skills/hormozi/render-audit-pdf.sh /tmp/hormozi-audit-<businessname>-<YYYYMMDD>.json
+bash ~/.claude/skills/hormozi/render-audit-pdf.sh /tmp/hormozi-audit-<businessname>-<YYYYMMDD>.json
 ```
 
 This renders the JSON into the PDF template via Playwright. Output: `/tmp/hormozi-audit-<businessname>-<YYYYMMDD>.pdf`.
