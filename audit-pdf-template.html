@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hormozi Audit — {{ business.name }}</title>
+<style>
+  :root {
+    --ink: #1a1b1a;
+    --ink-soft: #2a2c2a;
+    --paper: #fafaf7;
+    --rule: #d8d4cc;
+    --accent: #d97757;
+    --green: #7a9e87;
+    --amber: #d9a040;
+    --red: #c25450;
+    --muted: #6b6b66;
+  }
+
+  @page { size: Letter; margin: 18mm 14mm; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Geist', 'Helvetica Neue', Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.5;
+    font-size: 11pt;
+    margin: 0;
+  }
+
+  .label, .meta, th, .stamp, .stage, .domain-name, .vote-key, .week-label {
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 9pt;
+    color: var(--muted);
+  }
+
+  h1 {
+    font-size: 28pt;
+    line-height: 1.05;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: 600;
+    margin: 28px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--rule);
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: 600;
+    margin: 14px 0 4px;
+  }
+
+  .cover {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+  }
+  .cover .stamp {
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .cover .sub {
+    font-size: 12pt;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .cover .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 14px;
+  }
+  .cover .meta-row > div {
+    min-width: 100px;
+  }
+  .cover .meta-row .v {
+    color: var(--ink);
+    font-family: 'Geist', sans-serif;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 11pt;
+    margin-top: 2px;
+  }
+
+  .stage-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 16px;
+    margin: 18px 0;
+    border-radius: 2px;
+  }
+  .stage-banner .stage {
+    color: var(--paper);
+    opacity: 0.6;
+  }
+  .stage-banner .stage-label {
+    font-size: 13pt;
+    font-weight: 600;
+    color: var(--paper);
+  }
+  .stage-banner .weighting {
+    font-size: 9pt;
+    color: var(--paper);
+    opacity: 0.75;
+    text-align: right;
+    max-width: 50%;
+  }
+
+  .verdict-box {
+    background: #fff;
+    border: 2px solid var(--ink);
+    padding: 18px;
+    margin: 16px 0 24px;
+  }
+  .verdict-box .label {
+    color: var(--accent);
+  }
+  .verdict-box .one-thing {
+    font-size: 18pt;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 6px 0 10px;
+  }
+  .verdict-box .winner {
+    font-size: 10pt;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .verdict-box .winner strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .verdict-box .logic {
+    font-size: 10.5pt;
+    color: var(--ink-soft);
+  }
+  .verdict-box .mismatch {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    font-size: 10pt;
+    color: var(--ink-soft);
+  }
+  .verdict-box .mismatch .label {
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+
+  .scorecard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .scorecard {
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 12px 14px;
+    border-radius: 2px;
+    page-break-inside: avoid;
+    position: relative;
+  }
+  .scorecard.winner {
+    border-left: 4px solid var(--accent);
+    border-color: var(--accent);
+  }
+  .scorecard .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .scorecard .domain-name {
+    font-size: 9.5pt;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .scorecard .scores {
+    font-size: 10pt;
+    color: var(--muted);
+  }
+  .scorecard .scores .final {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14pt;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .scorecard .scores .final.high { color: var(--green); }
+  .scorecard .scores .final.mid { color: var(--amber); }
+  .scorecard .scores .final.low { color: var(--red); }
+  .scorecard .delta {
+    font-size: 9pt;
+    color: var(--accent);
+    margin-left: 4px;
+  }
+  .scorecard .constraint {
+    font-size: 10.5pt;
+    color: var(--ink);
+    margin: 4px 0 6px;
+  }
+  .scorecard .vote {
+    font-size: 9pt;
+    color: var(--muted);
+  }
+  .scorecard .vote strong {
+    color: var(--ink);
+  }
+
+  .debate {
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 14px 16px;
+    border-radius: 2px;
+    margin-top: 10px;
+  }
+  .debate .label { color: var(--ink-soft); margin-bottom: 6px; }
+  .debate p { margin: 6px 0; }
+  .vote-tally {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .vote-tally .vote-pill {
+    padding: 4px 10px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+  }
+  .vote-tally .vote-pill.winner {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .vote-tally .count {
+    color: var(--accent);
+    font-weight: 600;
+    margin-left: 6px;
+  }
+  .vote-tally .vote-pill.winner .count { color: var(--paper); }
+
+  .rx-box {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    padding: 14px 16px;
+    border-radius: 2px;
+    margin: 10px 0;
+  }
+  .rx-box .framework {
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .rx-box ol { margin: 8px 0 0 18px; padding: 0; }
+  .rx-box li { margin: 4px 0; }
+  .rx-box .meta-line {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--rule);
+    font-size: 9.5pt;
+    color: var(--muted);
+  }
+  .rx-box .meta-line strong { color: var(--ink); }
+
+  ul.quick-wins {
+    margin: 8px 0 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  ul.quick-wins li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  ul.quick-wins li:last-child { border-bottom: none; }
+  ul.quick-wins li::before {
+    content: "→";
+    color: var(--accent);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .roadmap-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+    page-break-inside: avoid;
+  }
+  .roadmap-row:last-child { border-bottom: none; }
+  .roadmap-row .week-block .week-label {
+    color: var(--accent);
+    font-size: 9pt;
+  }
+  .roadmap-row .week-block .focus {
+    font-size: 11pt;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .roadmap-row ul {
+    margin: 0;
+    padding-left: 16px;
+  }
+  .roadmap-row ul li {
+    font-size: 10pt;
+    margin: 2px 0;
+  }
+
+  footer {
+    margin-top: 32px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 8.5pt;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="stamp">Hormozi Council Audit</div>
+  <h1>{{ business.name }}</h1>
+  <div class="sub">{{ business.what_they_sell }}</div>
+  <div class="meta-row">
+    <div><div class="meta">Revenue</div><div class="v">{{ business.revenue_band }}</div></div>
+    <div><div class="meta">Margin</div><div class="v">{{ business.margin_pct }}%</div></div>
+    <div><div class="meta">Team</div><div class="v">{{ business.team_size }}</div></div>
+    <div><div class="meta">Audit Date</div><div class="v">{{ business.audit_date }}</div></div>
+  </div>
+</div>
+
+<div class="stage-banner">
+  <div>
+    <div class="stage">Stage</div>
+    <div class="stage-label">{{ stage.label }}</div>
+  </div>
+  <div class="weighting">{{ stage.weighting_applied }}</div>
+</div>
+
+<h2>The One Thing</h2>
+<div class="verdict-box">
+  <div class="label">Verdict</div>
+  <div class="one-thing">{{ verdict.the_one_thing }}</div>
+  <div class="winner">Winning domain: <strong>{{ verdict.winning_domain }}</strong></div>
+  <div class="logic">{{ verdict.synthesizer_logic }}</div>
+  {% if not verdict.stated_bottleneck_match %}
+  <div class="mismatch">
+    <div class="label">Mismatch with stated bottleneck</div>
+    User said the problem was: <em>{{ business.stated_bottleneck }}</em><br>
+    {{ verdict.if_no_match }}
+  </div>
+  {% endif %}
+</div>
+
+<h2>Prescription</h2>
+<div class="rx-box">
+  <div class="framework">{{ prescription.framework }}</div>
+  <ol>
+    {% for step in prescription.steps %}
+    <li>{{ step }}</li>
+    {% endfor %}
+  </ol>
+  <div class="meta-line">
+    <strong>Expected outcome:</strong> {{ prescription.expected_outcome }}
+    &nbsp;·&nbsp;
+    <strong>Time to impact:</strong> {{ prescription.time_to_impact }}
+  </div>
+</div>
+
+<h2>Domain Scorecards</h2>
+<div class="scorecard-grid">
+  {% for sc in domain_scorecards %}
+  <div class="scorecard{% if sc.domain == verdict.winning_domain %} winner{% endif %}">
+    <div class="head">
+      <div class="domain-name">{{ sc.domain }}</div>
+      <div class="scores">
+        R1: {{ sc.round_1_score }}
+        →
+        <span class="final {% if sc.round_2_score >= 7 %}high{% elif sc.round_2_score >= 5 %}mid{% else %}low{% endif %}">{{ sc.round_2_score }}</span>
+        {% if sc.round_2_score != sc.round_1_score %}
+        <span class="delta">({{ '+' if sc.round_2_score > sc.round_1_score else '' }}{{ sc.round_2_score - sc.round_1_score }})</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="constraint">{{ sc.constraint }}</div>
+    <div class="vote">Voted #1 constraint: <strong>{{ sc.global_vote }}</strong></div>
+  </div>
+  {% endfor %}
+</div>
+
+<h2>Council Debate</h2>
+<div class="debate">
+  <div class="label">Biggest disagreement</div>
+  <p>{{ debate.biggest_disagreement }}</p>
+  {% if debate.who_conceded %}
+  <div class="label" style="margin-top: 12px;">Concessions</div>
+  <ul style="margin: 4px 0 0 18px;">
+    {% for c in debate.who_conceded %}<li>{{ c }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  <div class="label" style="margin-top: 14px;">Vote tally — who owns the #1 constraint</div>
+  <div class="vote-tally">
+    {% for domain, count in debate.vote_tally.items() %}
+    <div class="vote-pill{% if domain == verdict.winning_domain %} winner{% endif %}">
+      {{ domain }}<span class="count">{{ count }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<h2>Quick Wins (7 Days)</h2>
+<ul class="quick-wins">
+  {% for w in quick_wins_7d %}
+  <li>{{ w }}</li>
+  {% endfor %}
+</ul>
+
+<h2>90-Day Roadmap</h2>
+<div>
+  {% for phase in ninety_day_roadmap %}
+  <div class="roadmap-row">
+    <div class="week-block">
+      <div class="week-label">Week {{ phase.week }}</div>
+      <div class="focus">{{ phase.focus }}</div>
+    </div>
+    <ul>
+      {% for a in phase.actions %}<li>{{ a }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</div>
+
+<footer>
+  <div>Hormozi Council Audit · 6-advisor 2-round deliberation</div>
+  <div>{{ business.audit_date }}</div>
+</footer>
+
+</body>
+</html>
